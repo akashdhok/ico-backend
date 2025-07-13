@@ -1258,7 +1258,7 @@ exports.updateHeaderContent = async (req, res) => {
       onePager,
       navLogo,
       auditReport,
-      solidProof // ✅ Receive solidProof
+      solidProof
     } = req.body;
 
     const header = await LandingHeader.findById(id);
@@ -1294,13 +1294,15 @@ exports.updateHeaderContent = async (req, res) => {
       header.navLogo = await uploadImageToCloud(navLogo, "landingHeader/navLogo", "navLogo");
     }
 
-    if (auditReport) {
+    // ✅ Handle auditReport (ignore empty or missing)
+    if (auditReport !== undefined && auditReport !== "") {
       header.auditReport = auditReport.startsWith("http")
         ? auditReport
         : await uploadImageToCloud(auditReport, "landingHeader/papers", "auditReport");
     }
 
-    if (solidProof) {
+    // ✅ Handle solidProof (ignore empty or missing)
+    if (solidProof !== undefined && solidProof !== "") {
       header.solidProof = solidProof.startsWith("http")
         ? solidProof
         : await uploadImageToCloud(solidProof, "landingHeader/papers", "solidProof");
@@ -1319,6 +1321,7 @@ exports.updateHeaderContent = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 
