@@ -24,6 +24,8 @@ const PrivacyPolicy = require("../models/privacyPolicy.model");
 const CookiePolicy = require('../models/cookiePolicy.model');
 const Blog = require('../models/blog.model');
 const CopyWrite = require("../models/copyWrite.model");
+const FooterDescription = require("../models/footerDescription.model");
+const Contact = require("../models/contact.model");
 // --- Event Handlers ---
 exports.createEvent = async (req, res) => {
  try {
@@ -1141,7 +1143,8 @@ exports.createHeaderContent = async (req, res) => {
       whitePaper,
       onePager,
       navLogo,
-      auditReport
+      auditReport,
+      solidProof 
     } = req.body;
 
     let logoImageUrl = "";
@@ -1152,6 +1155,7 @@ exports.createHeaderContent = async (req, res) => {
     let onePagerUrl = "";
     let navLogoUrl = "";
     let auditReportUrl = "";
+    let solidProofUrl = ""; // ✅ New variable
 
     if (logoImage) {
       logoImageUrl = await uploadImageToCloud(logoImage, "landingHeader/logo", "logoImage");
@@ -1182,10 +1186,15 @@ exports.createHeaderContent = async (req, res) => {
     }
 
     if (auditReport) {
-      // If it's a file (base64 or file path), upload it; if it's a link, store directly
       auditReportUrl = auditReport.startsWith("http")
         ? auditReport
         : await uploadImageToCloud(auditReport, "landingHeader/papers", "auditReport");
+    }
+
+    if (solidProof) {
+      solidProofUrl = solidProof.startsWith("http")
+        ? solidProof
+        : await uploadImageToCloud(solidProof, "landingHeader/papers", "solidProof");
     }
 
     const newHeader = new LandingHeader({
@@ -1200,7 +1209,8 @@ exports.createHeaderContent = async (req, res) => {
       whitePaper: whitePaperUrl,
       onePager: onePagerUrl,
       navLogo: navLogoUrl,
-      auditReport: auditReportUrl
+      auditReport: auditReportUrl,
+      solidProof: solidProofUrl, // ✅ Save to DB
     });
 
     await newHeader.save();
@@ -1211,6 +1221,7 @@ exports.createHeaderContent = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 
@@ -1246,7 +1257,8 @@ exports.updateHeaderContent = async (req, res) => {
       whitePaper,
       onePager,
       navLogo,
-      auditReport
+      auditReport,
+      solidProof // ✅ Receive solidProof
     } = req.body;
 
     const header = await LandingHeader.findById(id);
@@ -1288,6 +1300,12 @@ exports.updateHeaderContent = async (req, res) => {
         : await uploadImageToCloud(auditReport, "landingHeader/papers", "auditReport");
     }
 
+    if (solidProof) {
+      header.solidProof = solidProof.startsWith("http")
+        ? solidProof
+        : await uploadImageToCloud(solidProof, "landingHeader/papers", "solidProof");
+    }
+
     if (headerTitle !== undefined) header.headerTitle = headerTitle;
     if (subTitle !== undefined) header.subTitle = subTitle;
     if (description !== undefined) header.description = description;
@@ -1301,6 +1319,7 @@ exports.updateHeaderContent = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 
@@ -2203,5 +2222,95 @@ exports.deleteCopyWrite = async (req, res) => {
     res.status(200).json({ success: true, message: "Deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Delete failed", error: error.message });
+  }
+};
+
+// Create Footer Description
+exports.createDescription = async (req, res) => {
+  try {
+    const { description } = req.body;
+    const newDescription = new FooterDescription({ description });
+    await newDescription.save();
+    res.status(201).json({ success: true, data: newDescription });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Get All Footer Descriptions
+exports.getAllDescriptions = async (req, res) => {
+  try {
+    const descriptions = await FooterDescription.find();
+    res.status(200).json({ success: true, data: descriptions });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Get Single Footer Description by ID
+exports.getDescriptionById = async (req, res) => {
+  try {
+    const description = await FooterDescription.findById(req.params.id);
+    if (!description) {
+      return res.status(404).json({ success: false, message: "Not found" });
+    }
+    res.status(200).json({ success: true, data: description });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Update Footer Description
+exports.updateDescription = async (req, res) => {
+  try {
+    const updated = await FooterDescription.findByIdAndUpdate(
+      req.params.id,
+      { description: req.body.description },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "Not found" });
+    }
+    res.status(200).json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Delete Footer Description
+exports.deleteDescription = async (req, res) => {
+  try {
+    const deleted = await FooterDescription.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "Not found" });
+    }
+    res.status(200).json({ success: true, message: "Deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+// Create contact message
+exports.createContact = async (req, res) => {
+  try {
+    const { fullName, email, phone, subject, message } = req.body;
+
+    const newContact = new Contact({ fullName, email, phone, subject, message });
+    await newContact.save();
+
+    res.status(201).json({ success: true, data: newContact });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Get all contact messages
+exports.getAllContacts = async (req, res) => {
+  try {
+    const contacts = await Contact.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: contacts });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

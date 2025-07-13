@@ -12,6 +12,7 @@ const LandingHeaderSchema = new mongoose.Schema({
   whitePaper: { type: String },
   description: { type: String },
   auditReport: { type: String },
+  solidProof: { type: String },
   onePager: { type: String },
   sideLogo: { type: String },
   sideLogoTitle: { type: String },

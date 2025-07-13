@@ -181,4 +181,18 @@ router.put("/update-copywrite/:id", contentController.updateCopyWrite);
 router.delete("/delete-copywrite/:id", contentController.deleteCopyWrite);
 
 
+//FOOTER DESCRIPTION ROUTES
+router.post("/create-description", contentController.createDescription);
+router.get("/get-description", contentController.getAllDescriptions);
+router.get("/get-description/:id", contentController.getDescriptionById);
+router.put("/update-description/:id", contentController.updateDescription);
+router.delete("/delete-description/:id", contentController.deleteDescription);
+
+//CONTACT ROUTES
+
+router.post("/create-contact", contentController.createContact);
+router.get("/get-contact", contentController.getAllContacts);
+
+
+
 module.exports = router;
